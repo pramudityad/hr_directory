@@ -45,7 +45,7 @@ def create_db():
         db.create_all()
 
 @app.route('/employees/search', methods=['GET'])
-@limiter.limit("10 per minute")  # Rate limit for this specific endpoint
+@limiter.limit("10 per second")  # Rate limit for this specific endpoint
 async def search_employees():
     org_id = request.args.get('org_id')
     query = request.args.get('query', '')
