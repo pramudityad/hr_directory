@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Index
-# import asyncio
+import asyncio
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hr_directory.db'
@@ -33,7 +33,7 @@ def create_db():
         db.create_all()
 
 @app.route('/employees/search', methods=['GET'])
-def search_employees():
+async def search_employees():
     org_id = request.args.get('org_id')
     query = request.args.get('query', '')
     page = request.args.get('page', 1, type=int)
