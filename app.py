@@ -1,12 +1,24 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Index
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 import asyncio
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hr_directory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# Initialize Flask-Limiter
+limiter = Limiter(
+    get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+# Apply the limiter to the app
+limiter.init_app(app)
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,6 +45,7 @@ def create_db():
         db.create_all()
 
 @app.route('/employees/search', methods=['GET'])
+@limiter.limit("10 per minute")  # Rate limit for this specific endpoint
 async def search_employees():
     org_id = request.args.get('org_id')
     query = request.args.get('query', '')
@@ -58,7 +71,6 @@ async def search_employees():
         search_filter
     )
 
-    # Use the paginate method correctly
     paginated_employees = employees_query.paginate(page=page, per_page=per_page, error_out=False)
 
     display_columns = organization.display_columns
